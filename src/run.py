@@ -51,6 +51,7 @@ def create_app():
     from routes.files import files_bp
     from routes.pdf_generator import pdf_bp
     from routes.monitoring import monitoring_bp
+    from routes.forensic_analysis import forensic_bp
     
     app.register_blueprint(analysis_bp, url_prefix='/api')
     app.register_blueprint(enhanced_analysis_bp, url_prefix='/api')
@@ -59,6 +60,7 @@ def create_app():
     app.register_blueprint(files_bp, url_prefix='/api')
     app.register_blueprint(pdf_bp, url_prefix='/api')
     app.register_blueprint(monitoring_bp, url_prefix='/api')
+    app.register_blueprint(forensic_bp, url_prefix='/api/forensic')
     
     @app.route('/')
     def index():
@@ -69,6 +71,11 @@ def create_app():
     def archaeological():
         """Interface arqueológica"""
         return render_template('enhanced_interface.html')
+    
+    @app.route('/forensic')
+    def forensic():
+        """Interface forense"""
+        return render_template('forensic_interface.html')
     
     @app.route('/api/app_status')
     def app_status():

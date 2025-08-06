@@ -1,4 +1,3 @@
-
 // ARQV30 Enhanced v2.0 - Main JavaScript
 console.log('🚀 ARQV30 Enhanced v2.0 - Main JS carregado');
 
@@ -156,6 +155,82 @@ function validateForm(formId) {
     return isValid;
 }
 
+function getSessionId() {
+    let sessionId = sessionStorage.getItem('arqv30_session_id');
+    
+    if (!sessionId) {
+        sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        sessionStorage.setItem('arqv30_session_id', sessionId);
+    }
+    
+    return sessionId;
+}
+
+// Sistema de progresso corrigido
+async function startProgressTracking(sessionId) {
+    try {
+        const response = await fetch('/api/progress/start_tracking', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ session_id: sessionId })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            console.log('✅ Progress tracking iniciado:', sessionId);
+            return true;
+        } else {
+            console.error('❌ Erro ao iniciar tracking:', result.error);
+            return false;
+        }
+    } catch (error) {
+        console.error('❌ Erro no progress tracking:', error);
+        return false;
+    }
+}
+
+async function getProgressStatus(sessionId) {
+    try {
+        const response = await fetch(`/api/progress/get_progress/${sessionId}`);
+        
+        if (response.ok) {
+            const result = await response.json();
+            return result.progress;
+        } else {
+            console.error('❌ Erro ao obter progresso:', response.status);
+            return null;
+        }
+    } catch (error) {
+        console.error('❌ Erro ao obter progresso:', error);
+        return null;
+    }
+}
+
+async function removeFile(fileId) {
+    try {
+        const response = await fetch(`/api/remove_attachment/${fileId}`, {
+            method: 'DELETE'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            const fileItem = document.querySelector(`[onclick="removeFile('${fileId}')"]`).parentNode;
+            fileItem.remove();
+            showAlert('Arquivo removido com sucesso!', 'success');
+        } else {
+            throw new Error(result.error || 'Erro ao remover arquivo');
+        }
+        
+    } catch (error) {
+        console.error('Erro ao remover arquivo:', error);
+        showAlert(`Erro ao remover arquivo: ${error.message}`, 'error');
+    }
+}
+
 // Inicialização quando DOM estiver pronto
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🎯 DOM carregado - Iniciando ARQV30');
@@ -182,6 +257,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// Inicialização
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('📁 Inicializando sistema de upload');
+    initializeUploadSystem();
+});
+
 // Exposição de funções globais
 window.showAlert = showAlert;
 window.showLoading = showLoading;
@@ -190,3 +271,10 @@ window.copyToClipboard = copyToClipboard;
 window.validateForm = validateForm;
 window.formatCurrency = formatCurrency;
 window.formatDate = formatDate;
+
+// Exposição de funções globais
+window.uploadFile = uploadFile;
+window.removeFile = removeFile;
+window.handleFiles = handleFiles;
+window.startProgressTracking = startProgressTracking;
+window.getProgressStatus = getProgressStatus;
